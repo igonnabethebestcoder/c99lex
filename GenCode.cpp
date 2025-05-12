@@ -1,14 +1,14 @@
 #include "GenCode.h"
 void GenCode::printDeclaration()
 {
-    // 1. Include Í·ÎÄ¼þ
+    // 1. Include å¤´æ–‡ä»¶
     out << "#include <iostream>\n";
     out << "#include <unordered_map>\n";
     out << "#include <string>\n";
     out << "#include <fstream>\n";
     out << "using namespace std;\n";
 
-    // 2. ¶¨ÒåÈ«¾Ö±äÁ¿
+    // 2. å®šä¹‰å…¨å±€å˜é‡
     out << "string yytext;\n";
     out << "int yylval;\n\n";
     for (auto& s : user_declarations)
@@ -27,7 +27,7 @@ void GenCode::printActions()
     out << "    switch (tokenID) {\n";
     for (size_t i = 0; i < rules.size(); ++i) {
         out << "    case " << i << ":\n";
-        out << "        " << rules[i].actions << "\n";  // ¼ÙÉè action ÊÇ C++ ´úÂë
+        out << "        " << rules[i].actions << "\n";  // å‡è®¾ action æ˜¯ C++ ä»£ç 
         out << "        break;\n";
     }
     out << "    }\n";
@@ -52,19 +52,19 @@ static string handleEscape(char c)
 
 void GenCode::printMinDFA()
 {
-    // 3. ¶¨Òå minDFA Êý¾Ý
-    out << "// DFA ×ªÒÆ±í\n";
+    // 3. å®šä¹‰ minDFA æ•°æ®
+    out << "// DFA è½¬ç§»è¡¨\n";
     out << "vector<unordered_map<char, int>> transitions = {\n";
     for (const auto& state : dfa.states) {
         out << "    {{";
         for (const auto& [ch, target] : state->transitions) {
-            out << "'" << ch << "', " << target << "}, {";
+            out << "'" << handleEscape(ch) << "', " << target << "}, {";
         }
         out << "}},\n";
     }
     out << "};\n\n";
 
-    out << "// ½ÓÊÜ×´Ì¬¼°Æä tokenID\n";
+    out << "// æŽ¥å—çŠ¶æ€åŠå…¶ tokenID\n";
     out << "unordered_map<int, int> acceptStates = {\n";
     for (const auto& state : dfa.states) {
         if (state->isAccept) {
@@ -75,7 +75,7 @@ void GenCode::printMinDFA()
 
     out << "int startState = " << dfa.minDFAsid << ";\n\n";
 
-    // 4. yylex() º¯Êý
+    // 4. yylex() å‡½æ•°
     out << "int yylex() {\n";
     out << "    static int currentState = startState;\n";
     out << "    static string lexeme = \"\";\n";
@@ -86,7 +86,7 @@ void GenCode::printMinDFA()
     out << "            if (acceptStates.count(currentState)) {\n";
     out << "                int tokenID = acceptStates[currentState];\n";
     out << "                yytext = lexeme;\n";
-    out << "                // Ö´ÐÐ¶¯×÷\n";
+    out << "                // æ‰§è¡ŒåŠ¨ä½œ\n";
     out << "                action(tokenID);\n";
     out << "                lexeme = \"\";\n";
     out << "                currentState = startState;\n";
@@ -102,7 +102,7 @@ void GenCode::printMinDFA()
     out << "            if (acceptStates.count(currentState)) {\n";
     out << "                int tokenID = acceptStates[currentState];\n";
     out << "                yytext = lexeme;\n";
-    out << "                // Ö´ÐÐ¶¯×÷\n";
+    out << "                // æ‰§è¡ŒåŠ¨ä½œ\n";
     out << "                action(tokenID);\n";
     out << "                lexeme = \"\";\n";
     out << "                currentState = startState;\n";
@@ -123,13 +123,13 @@ void GenCode::printMainFuc()
     out << "int main()\n";
     out << "{\n"; 
     out << "    ifstream file(\"test.txt\");\n";
-    out << "    // ±¸·ÝÔ­Ê¼ cin\n";
+    out << "    // å¤‡ä»½åŽŸå§‹ cin\n";
     out << "    streambuf* origCin = cin.rdbuf();\n";
-    out << "    cin.rdbuf(file.rdbuf()); // Ìæ»» cin Îª file\n";
+    out << "    cin.rdbuf(file.rdbuf()); // æ›¿æ¢ cin ä¸º file\n";
     out << "    cout << \"Lexical Analysis Result : \\n\";\n";
     out << "    int token;\n";
     out << "    while ((token = yylex()) != 0) {}\n";
-    out << "    cin.rdbuf(origCin);  // »Ö¸´ cin\n";
+    out << "    cin.rdbuf(origCin);  // æ¢å¤ cin\n";
     out << "    return 0;\n";
     out << "}\n";
 }
